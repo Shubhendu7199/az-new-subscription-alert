@@ -12,18 +12,24 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v2
 
-    - name: Set up Azure CLI
-      uses: azure/CLI@v1
+    - name: Azure Login action
+      uses: azure/login@v2
       with:
-        inlineScript: |
-          az login --service-principal --username ${{ secrets.AZURE_CLIENT_ID }} --password ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        enable-AzPSSession: true
 
-    - name: Run Subscription Scan Script
-      run: |
-        pwsh -f ./scripts/subscription_scan.ps1
-      env:
-        AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
-        AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
-        AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-        AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+    # - name: Run Subscription Scan Script
+    #   uses: azure/powershell@v2
+    #   run: |
+    #     pwsh -f ./scripts/subscription_scan.ps1
+      # env:
+      #   AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
+      #   AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
+      #   AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      #   AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+      #   AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+    - name: Run Azure PowerShell Script File
+      uses: azure/powershell@v2
+      with:
+        inlineScript: ./scripts/subscription_scan.ps1
+        azPSVersion: "latest"
