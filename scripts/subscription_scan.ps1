@@ -44,7 +44,7 @@ $yesterdayContent = az storage blob download --account-name $env:AZURE_STORAGE_A
 #     az storage blob delete --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --name $file.name --output none
 # }
 
-$a = Get-AzSubscription
-Write-Host $a
+Get-AzSubscription
+# Write-Host $a
 
 Write-Host "Script completed."
