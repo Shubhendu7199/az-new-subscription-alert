@@ -6,7 +6,7 @@ $fileYesterday = "subscriptions_$yesterday.json"
 
 $currentSubscriptions = az account subscription list --output json | ConvertFrom-Json
 
-$containerName = "subscription-reports"
+$containerName = "subs"
 $yesterdayBlobUrl = "https://$env:AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$containerName/$fileYesterday"
 $yesterdayContent = az storage blob download --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --name $fileYesterday --file $fileYesterday --output none
 
