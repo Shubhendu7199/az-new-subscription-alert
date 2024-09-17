@@ -90,11 +90,17 @@ if (Test-Path $fileYesterday) {
                     contentType = "application/vnd.microsoft.card.adaptive"
                     content = @{
                         type = "AdaptiveCard"
-                        version = "1.0"
+                        version = "1.2"
                         body = @(
                             @{
                                 type = "TextBlock"
-                                text = "This is a test message from PowerShell to Teams"
+                                size = "Medium"
+                                weight = "Bolder"
+                                text = "New Azure Subscriptions Found"
+                            },
+                            @{
+                                type = "FactSet"
+                                facts = $subscriptionsFormatted
                             }
                         )
                     }
