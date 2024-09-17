@@ -84,8 +84,25 @@ if (Test-Path $fileYesterday) {
         }
 
         $body = @{
-            text = "This is a test message from PowerShell to Teams"
+            type = "message"
+            attachments = @(
+                @{
+                    contentType = "application/vnd.microsoft.card.adaptive"
+                    content = @{
+                        type = "AdaptiveCard"
+                        version = "1.0"
+                        body = @(
+                            @{
+                                type = "TextBlock"
+                                text = "This is a test message from PowerShell to Teams"
+                            }
+                        )
+                    }
+                }
+            )
         }
+
+        $jsonBody = $body | ConvertTo-Json -Depth 10
 
         # Send notification to Microsoft Teams
         # $body = @{
@@ -93,7 +110,7 @@ if (Test-Path $fileYesterday) {
         # }
         
         if (-not [string]::IsNullOrEmpty($env:TEAMS_WEBHOOK_URL)) {
-            Invoke-RestMethod -Method Post -Uri $env:TEAMS_WEBHOOK_URL -ContentType 'application/json' -Body ($body | ConvertTo-Json)
+            Invoke-RestMethod -Method Post -Uri $env:TEAMS_WEBHOOK_URL -ContentType 'application/json' -Body $jsonBody
             Write-Host "Teams notification sent."
         } else {
             Write-Host "Teams webhook URL is not set."
