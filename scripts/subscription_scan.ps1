@@ -72,15 +72,41 @@ if (Test-Path $fileYesterday) {
         Write-Host "New subscriptions found:"
         $newSubscriptions | Format-Table
 
-        $message = @"
-        **New Azure Subscriptions Found:**
-        $(($newSubscriptions | ForEach-Object {
-        "**Subscription Name**: $($_.displayName)`n" +
-        "**Subscription ID**: $($_.subscriptionId)`n" +
-        "**Authorization Source**: $($_.authorizationSource)`n" +
-        "**State**: $($_.state)`n"
-    }) -join "`n")
-"@
+        $subscriptionsFormatted = $newSubscriptions | ForEach-Object {
+            @{
+                title = "Subscription: $($_.displayName)"
+                facts = @(
+                    @{ name = "Subscription ID"; value = $_.subscriptionId },
+                    @{ name = "Authorization Source"; value = $_.authorizationSource },
+                    @{ name = "State"; value = $_.state }
+                )
+            }
+        }
+
+        $body = @{
+            type = "message"
+            attachments = @(
+                @{
+                    contentType = "application/vnd.microsoft.card.adaptive"
+                    content = @{
+                        type = "AdaptiveCard"
+                        version = "1.2"
+                        body = @(
+                            @{
+                                type = "TextBlock"
+                                size = "Medium"
+                                weight = "Bolder"
+                                text = "New Azure Subscriptions Found"
+                            },
+                            @{
+                                type = "FactSet"
+                                facts = $subscriptionsFormatted
+                            }
+                        )
+                    }
+                }
+            )
+        }
 
         # Send notification to Microsoft Teams
         $body = @{
@@ -88,7 +114,7 @@ if (Test-Path $fileYesterday) {
         }
         
         if (-not [string]::IsNullOrEmpty($env:TEAMS_WEBHOOK_URL)) {
-            Invoke-RestMethod -Method Post -Uri $env:TEAMS_WEBHOOK_URL -ContentType 'application/json' -Body ($body | ConvertTo-Json)
+            Invoke-RestMethod -Method Post -Uri $env:TEAMS_WEBHOOK_URL -ContentType 'application/json' -Body ($body | ConvertTo-Json -Depth 10)
             Write-Host "Teams notification sent."
         } else {
             Write-Host "Teams webhook URL is not set."
