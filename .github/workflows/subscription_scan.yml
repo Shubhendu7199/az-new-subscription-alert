@@ -77,16 +77,5 @@ jobs:
       env:
         AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
         AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
-        TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
-      id: new-subscription-scan  # Set the step ID so you can access the output
-
-    - name: Send Teams Notification
-      if: success() && steps.new-subscription-scan.outputs.new_subscriptions == 'true'
-      run: |
-        curl -H 'Content-Type: application/json' \
-        -d '{"text": "New Azure Subscriptions Found. Check the latest scan results."}' \
-        ${{ secrets.TEAM_WEBHOOK_URL }}
-      env:
-        TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
 
 
