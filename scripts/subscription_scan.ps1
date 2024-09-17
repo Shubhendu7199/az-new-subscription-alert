@@ -69,11 +69,11 @@ if (Test-Path $fileYesterday) {
         foreach ($subscription in $newSubscriptions) {
             $subscriptionId = $subscription.subscriptionId
 
-            # Fetch Owner/Admin details (simulating Account/Service Admins)
+            # Fetch Owner/Admin details
             $owners = Get-AzRoleAssignment -Scope "/subscriptions/$subscriptionId" | Where-Object { $_.RoleDefinitionName -eq "Owner" }
 
-            # Fetch Subscription tags
-            $subscriptionTags = az account tag list --output json | ConvertFrom-Json
+            # Fetch Subscription tags (corrected command)
+            $subscriptionTags = az tag list --resource-id "/subscriptions/$subscriptionId" --output json | ConvertFrom-Json
 
             # Collect subscription information
             $subscriptionDetails = @{
@@ -87,8 +87,16 @@ if (Test-Path $fileYesterday) {
             # Convert details to JSON for sending to Teams
             $subscriptionDetailsJson = $subscriptionDetails | ConvertTo-Json
 
+            # Get the webhook URL from the environment variable
+            $webhookUrl = $env:TEAM_WEBHOOK_URL
+
+            # Check if the webhook URL is correctly set
+            if (-not $webhookUrl) {
+                Write-Error "Teams Webhook URL is not set. Please check the GitHub Actions secret."
+                exit 1
+            }
+
             # Send a notification to Microsoft Teams via webhook
-            $webhookUrl = $env:TEAMS_WEBHOOK_URL
             $body = @{
                 text = "New subscription detected. Details: " + $subscriptionDetailsJson
             }
@@ -114,6 +122,6 @@ $filesToDelete = az storage blob list --account-name $env:AZURE_STORAGE_ACCOUNT 
 
 foreach ($file in $filesToDelete) {
     az storage blob delete --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --name $file.name --output none
-}
 
 Write-Host "Script completed."
+
