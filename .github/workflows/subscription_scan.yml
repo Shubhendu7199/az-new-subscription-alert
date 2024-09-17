@@ -74,7 +74,7 @@ jobs:
       id: subscription_scan
       uses: azure/powershell@v2
       with:
-        scriptPath: ./scripts/subscription_scan.ps1
+        inlineScript: ./scripts/subscription_scan.ps1
         azPSVersion: "latest"
       env:
         AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
