@@ -100,7 +100,11 @@ if (Test-Path $fileYesterday) {
                             },
                             @{
                                 type = "FactSet"
-                                facts = $subscriptionsFormatted
+                                facts = @(
+                                    @{ name = "Subscription ID"; value = "SampleID" },
+                                    @{ name = "Authorization Source"; value = "SampleSource" },
+                                    @{ name = "State"; value = "SampleState" }
+                                )
                             }
                         )
                     }
