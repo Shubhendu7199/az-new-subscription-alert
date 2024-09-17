@@ -95,7 +95,7 @@ if (Test-Path $fileYesterday) {
 $currentSubscriptions | ConvertTo-Json | Set-Content -Path $fileToday
 
 # Upload today's subscription file to Azure Blob Storage
-az storage blob upload --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --name $fileToday --file $fileToday --output none
+az storage blob upload --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --name $fileToday --file $fileToday --overwrite --output none
 
 # Delete old subscription files older than 30 days
 $filesToDelete = az storage blob list --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --output json |
