@@ -77,7 +77,7 @@ jobs:
       env:
         AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
         AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
-        TEAM_WEBHOOK_URL: ${{ secrets.TEAM_WEBHOOK_URL }} # Add the webhook URL as a secret
+        TEAM_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }} # Add the webhook URL as a secret
 
 
 
