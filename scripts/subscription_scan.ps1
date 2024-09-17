@@ -72,9 +72,19 @@ if (Test-Path $fileYesterday) {
         Write-Host "New subscriptions found:"
         $newSubscriptions | Format-Table
 
+        $message = @"
+        **New Azure Subscriptions Found:**
+        $(($newSubscriptions | ForEach-Object {
+        "**Subscription Name**: $($_.displayName)`n" +
+        "**Subscription ID**: $($_.subscriptionId)`n" +
+        "**Authorization Source**: $($_.authorizationSource)`n" +
+        "**State**: $($_.state)`n"
+    }) -join "`n")
+"@
+
         # Send notification to Microsoft Teams
         $body = @{
-            text = "New Azure Subscriptions Found: $($newSubscriptions | Out-String)"
+            text = $message
         }
         
         if (-not [string]::IsNullOrEmpty($env:TEAMS_WEBHOOK_URL)) {
