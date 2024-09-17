@@ -73,41 +73,23 @@ if (Test-Path $fileYesterday) {
         $newSubscriptions | Format-Table
 
         $subscriptionsFormatted = $newSubscriptions | ForEach-Object {
-            @{
-                title = "Subscription: $($_.displayName)"
-                facts = @(
-                    @{ name = "Subscription ID"; value = $_.subscriptionId },
-                    @{ name = "Authorization Source"; value = $_.authorizationSource },
-                    @{ name = "State"; value = $_.state }
-                )
-            }
+            @(
+                @{ name = "Subscription ID"; value = $_.subscriptionId },
+                @{ name = "Authorization Source"; value = $_.authorizationSource },
+                @{ name = "State"; value = $_.state }
+            )
         }
 
         $body = @{
-            type = "message"
-            attachments = @(
+            "@type" = "MessageCard"
+            "@context" = "http://schema.org/extensions"
+            "summary" = "New Azure Subscriptions Found"
+            "themeColor" = "0078D7"
+            "title" = "New Azure Subscriptions Found"
+            "sections" = @(
                 @{
-                    contentType = "application/vnd.microsoft.card.adaptive"
-                    content = @{
-                        type = "AdaptiveCard"
-                        version = "1.2"
-                        body = @(
-                            @{
-                                type = "TextBlock"
-                                size = "Medium"
-                                weight = "Bolder"
-                                text = "New Azure Subscriptions Found"
-                            },
-                            @{
-                                type = "FactSet"
-                                facts = @(
-                                    @{ name = "Subscription ID"; value = "SampleID" },
-                                    @{ name = "Authorization Source"; value = "SampleSource" },
-                                    @{ name = "State"; value = "SampleState" }
-                                )
-                            }
-                        )
-                    }
+                    "activityTitle" = "New Azure Subscriptions:"
+                    "facts" = $subscriptionsFormatted
                 }
             )
         }
