@@ -37,3 +37,10 @@ jobs:
       env:
         AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
         AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
+
+    - name: Send Teams Notification
+      if: success() && steps.new-subscriptions.outputs.new_subscriptions == 'true'
+      run: |
+        curl -H 'Content-Type: application/json' \
+        -d '{"text": "New Azure Subscriptions Found. Check the latest scan results."}' \
+        ${{ secrets.TEAMS_WEBHOOK_URL }}
