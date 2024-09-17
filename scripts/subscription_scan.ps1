@@ -88,9 +88,9 @@ if (Test-Path $fileYesterday) {
         }
 
         # Send notification to Microsoft Teams
-        $body = @{
-            text = $message
-        }
+        # $body = @{
+        #     text = $message
+        # }
         
         if (-not [string]::IsNullOrEmpty($env:TEAMS_WEBHOOK_URL)) {
             Invoke-RestMethod -Method Post -Uri $env:TEAMS_WEBHOOK_URL -ContentType 'application/json' -Body $body
