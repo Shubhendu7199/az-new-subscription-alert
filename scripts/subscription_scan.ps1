@@ -120,8 +120,8 @@ az storage blob upload --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $
 $filesToDelete = az storage blob list --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --output json |
     ConvertFrom-Json | Where-Object { (Get-Date $_.properties.lastModified) -lt (Get-Date).AddDays(-30) }
 
-foreach ($file in $filesToDelete) {
-    az storage blob delete --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --name $file.name --output none
-
+    foreach ($file in $filesToDelete) {
+        az storage blob delete --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --name $file.name --output none
+    }
 Write-Host "Script completed."
 
