@@ -44,3 +44,5 @@ jobs:
         curl -H 'Content-Type: application/json' \
         -d '{"text": "New Azure Subscriptions Found. Check the latest scan results."}' \
         ${{ secrets.TEAMS_WEBHOOK_URL }}
+      env:
+        TEAM_WEBHOOK_URL: ${{ secrets.TEAM_WEBHOOK_URL }}

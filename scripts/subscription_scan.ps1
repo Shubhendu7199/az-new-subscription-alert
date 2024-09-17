@@ -88,7 +88,7 @@ if (Test-Path $fileYesterday) {
             $subscriptionDetailsJson = $subscriptionDetails | ConvertTo-Json
 
             # Send a notification to Microsoft Teams via webhook
-            $webhookUrl = "TEAMS_WEBHOOK_URL"
+            $webhookUrl = $env:TEAMS_WEBHOOK_URL
             $body = @{
                 text = "New subscription detected. Details: " + $subscriptionDetailsJson
             }
