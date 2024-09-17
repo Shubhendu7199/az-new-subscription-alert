@@ -84,7 +84,7 @@ if (Test-Path $fileYesterday) {
 
 $currentSubscriptions | ConvertTo-Json | Set-Content -Path $fileToday
 
-az storage blob upload --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --name $fileToday --file $fileToday --output none
+az storage blob upload --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --name $fileToday --file $fileToday --overwrite --output none
 
 $filesToDelete = az storage blob list --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --output json |
     ConvertFrom-Json | Where-Object { (Get-Date $_.properties.lastModified) -lt (Get-Date).AddDays(-30) }
@@ -95,5 +95,6 @@ foreach ($file in $filesToDelete) {
 
 # Output to GitHub Actions
 Write-Host "new_subscriptions=$newSubscriptionsFound"
+echo "::set-output name=new_subscriptions::$newSubscriptionsFound"
 
 

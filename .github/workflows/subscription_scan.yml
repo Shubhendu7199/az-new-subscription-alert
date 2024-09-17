@@ -58,7 +58,6 @@ on:
 jobs:
   scan-subscriptions:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
@@ -71,7 +70,6 @@ jobs:
         allow-no-subscriptions: true
 
     - name: Run Azure PowerShell Script File
-      id: subscription_scan
       uses: azure/powershell@v2
       with:
         inlineScript: ./scripts/subscription_scan.ps1
@@ -79,14 +77,13 @@ jobs:
       env:
         AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
         AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
-        TEAM_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+      id: new-subscription-scan  # Set the step ID so you can access the output
 
     - name: Send Teams Notification
-      if: success() && steps.subscription_scan.outputs.new_subscriptions == 'true'
+      if: success() && steps.new-subscription-scan.outputs.new_subscriptions == 'true'
       run: |
         curl -H 'Content-Type: application/json' \
         -d '{"text": "New Azure Subscriptions Found. Check the latest scan results."}' \
-        ${{ secrets.TEAMS_WEBHOOK_URL }}
-      env:
-        TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+        ${{ secrets.TEAM_WEBHOOK_URL }}
+
 
