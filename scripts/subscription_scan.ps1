@@ -93,7 +93,7 @@ if (Test-Path $fileYesterday) {
         # }
         
         if (-not [string]::IsNullOrEmpty($env:TEAMS_WEBHOOK_URL)) {
-            Invoke-RestMethod -Method Post -Uri $env:TEAMS_WEBHOOK_URL -ContentType 'application/json' -Body $body
+            Invoke-RestMethod -Method Post -Uri $env:TEAMS_WEBHOOK_URL -ContentType 'application/json' -Body ($body | ConvertTo-Json)
             Write-Host "Teams notification sent."
         } else {
             Write-Host "Teams webhook URL is not set."
