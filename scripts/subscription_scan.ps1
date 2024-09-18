@@ -100,7 +100,6 @@ if (Test-Path $fileYesterday) {
 
         $jsonBody = $body | ConvertTo-Json -Depth 10
 
-        Send notification to Microsoft Teams
         $body = @{
             text = "Hello Oct"
         }
