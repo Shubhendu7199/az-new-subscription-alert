@@ -100,8 +100,9 @@ if (Test-Path $fileYesterday) {
 
         $jsonBody = $body | ConvertTo-Json -Depth 10
 
+        # Send notification to Microsoft Teams
         $body = @{
-            text = "Hello Oct"
+            text = "Hello Shubhendu"
         }
         
         if (-not [string]::IsNullOrEmpty($env:TEAMS_WEBHOOK_URL)) {
