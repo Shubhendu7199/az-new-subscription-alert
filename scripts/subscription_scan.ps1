@@ -90,12 +90,25 @@ if (Test-Path $fileYesterday) {
             "themeColor" = "0078D7"
             "title" = "New Azure Subscriptions Found"
             "sections" = @(
-                @{
-                    "activityTitle" = "New Azure Subscriptions:"
-                    "facts" = $subscriptionsFormatted
+              @{
+                "activityTitle" = "New Azure Subscriptions:"
+                "facts" = $subscriptionsFormatted | ForEach-Object {
+                  @{
+                    "name" = "Subscription ID"
+                    "value" = $_.subscriptionId
+                  },
+                  @{
+                    "name" = "Authorization Source"
+                    "value" = $_.authorizationSource
+                  },
+                  @{
+                    "name" = "State"
+                    "value" = $_.state
+                  }
                 }
+              }
             )
-        }
+          }
         
 
         $jsonBody = $body | ConvertTo-Json -Depth 10
