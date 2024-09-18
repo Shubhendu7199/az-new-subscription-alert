@@ -73,11 +73,16 @@ if (Test-Path $fileYesterday) {
         $newSubscriptions | Format-Table
 
         $subscriptionsFormatted = $newSubscriptions | ForEach-Object {
-            @(
-                @{ name = "Subscription ID"; value = $_.subscriptionId },
-                @{ name = "Authorization Source"; value = $_.authorizationSource },
-                @{ name = "State"; value = $_.state }
-            )
+            @{
+                "name" = "Subscription ID"
+                "value" = $_.subscriptionId
+            }, @{
+                "name" = "Authorization Source"
+                "value" = $_.authorizationSource
+            }, @{
+                "name" = "State"
+                "value" = $_.state
+            }
         }
 
         $body = @{
