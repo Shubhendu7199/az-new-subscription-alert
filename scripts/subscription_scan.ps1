@@ -83,40 +83,27 @@ if (Test-Path $fileYesterday) {
             }
         }
 
-        $body = @{
-            "@type" = "MessageCard"
-            "@context" = "http://schema.org/extensions"
-            "summary" = "New Azure Subscriptions Found"
-            "themeColor" = "0078D7"
-            "title" = "New Azure Subscriptions Found"
-            "sections" = @(
-              @{
-                "activityTitle" = "New Azure Subscriptions:"
-                "facts" = $subscriptionsFormatted | ForEach-Object {
-                  @{
-                    "name" = "Subscription ID"
-                    "value" = $_.subscriptionId
-                  },
-                  @{
-                    "name" = "Authorization Source"
-                    "value" = $_.authorizationSource
-                  },
-                  @{
-                    "name" = "State"
-                    "value" = $_.state
-                  }
-                }
-              }
-            )
-          }
+        # $body = @{
+        #     "@type" = "MessageCard"
+        #     "@context" = "http://schema.org/extensions"
+        #     "summary" = "New Azure Subscriptions Found"
+        #     "themeColor" = "0078D7"
+        #     "title" = "New Azure Subscriptions Found"
+        #     "sections" = @(
+        #       @{
+        #         "activityTitle" = "New Azure Subscriptions:"
+        #         "facts" = $subscriptionsFormatted 
+        #       }
+        #     )
+        #   }
         
 
         $jsonBody = $body | ConvertTo-Json -Depth 10
 
-        # Send notification to Microsoft Teams
-        # $body = @{
-        #     text = $message
-        # }
+        Send notification to Microsoft Teams
+        $body = @{
+            text = "Hello Oct"
+        }
         
         if (-not [string]::IsNullOrEmpty($env:TEAMS_WEBHOOK_URL)) {
             Invoke-RestMethod -Method Post -Uri $env:TEAMS_WEBHOOK_URL -ContentType 'application/json' -Body $jsonBody
