@@ -189,9 +189,22 @@ if (Test-Path $fileYesterday) {
                                         content = @{
                                             type = "MessageCard"
                                             title = "New Azure Subscriptions Found"
-                                            text = $newSubscriptions | ForEach-Object {
-                                                "Subscription: $($_.displayName) `nSubscription ID: $($_.subscriptionId) `nAuthorization Source: $($_.authorizationSource) `nState: $($_.state) `n"
-                                            } -join "`n"
+                                            $text = $newSubscriptions | ForEach-Object {
+                                                "Subscription: $($_.displayName)`nSubscription ID: $($_.subscriptionId)`nAuthorization Source: $($_.authorizationSource)`nState: $($_.state)`n"
+                                            } -join "`n`n"
+                                            
+                                            $body = @{
+                                                type = "message"
+                                                attachments = @(
+                                                    @{
+                                                        contentType = "application/vnd.microsoft.card.message"
+                                                        content = @{
+                                                            title = "New Azure Subscriptions Found"
+                                                            text = $text
+                                                        }
+                                                    }
+                                                )
+                                            }
                                         }
                                     }
                                 )
