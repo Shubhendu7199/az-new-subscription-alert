@@ -74,39 +74,36 @@ if (Test-Path $fileYesterday) {
             @{
                 "name" = "Subscription ID"
                 "value" = $_.subscriptionId
-            }, @{
+            }, 
+            @{
                 "name" = "Authorization Source"
                 "value" = $_.authorizationSource
-            }, @{
+            }, 
+            @{
                 "name" = "State"
                 "value" = $_.state
             }
         }
 
-        # $body = @{
-        #     "@type" = "MessageCard"
-        #     "@context" = "http://schema.org/extensions"
-        #     "summary" = "New Azure Subscriptions Found"
-        #     "themeColor" = "0078D7"
-        #     "title" = "New Azure Subscriptions Found"
-        #     "sections" = @(
-        #       @{
-        #         "activityTitle" = "New Azure Subscriptions:"
-        #         "facts" = $subscriptionsFormatted 
-        #       }
-        #     )
-        #   }
+        $body = @{
+            "@type" = "MessageCard"
+            "@context" = "http://schema.org/extensions"
+            summary = "New Azure Subscriptions Found"
+            themeColor = "0078D7"
+            title = "New Azure Subscriptions Found"
+            sections = @(
+              @{
+                activityTitle = "New Azure Subscriptions:"
+                facts = $subscriptionsFormatted 
+              }
+            )
+          }
         
 
         $jsonBody = $body | ConvertTo-Json -Depth 10
-
-        # Send notification to Microsoft Teams
-        $body = @{
-            text = "Hello Shubhendu"
-        }
         
         if (-not [string]::IsNullOrEmpty($env:TEAMS_WEBHOOK_URL)) {
-            Invoke-RestMethod -Method Post -Uri $env:TEAMS_WEBHOOK_URL -ContentType 'application/json' -Body $body
+            Invoke-RestMethod -Method Post -Uri $env:TEAMS_WEBHOOK_URL -ContentType 'application/json' -Body $jsonBody
             Write-Host "Teams notification sent."
         } else {
             Write-Host "Teams webhook URL is not set."
