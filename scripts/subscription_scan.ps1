@@ -71,13 +71,13 @@ if (Test-Path $fileYesterday) {
         $newSubscriptions | Format-Table
 
         $subscriptionsFormatted = $newSubscriptions | ForEach-Object {
-
+            $subscriptionTags = az tag list --resource-id $_.subscriptionId
             $subscriptionDetails = az account show --subscription $_.subscriptionId --output json | ConvertFrom-Json
             @(
                 @{ name = "Subscription ID"; value = $_.subscriptionId },
                 @{ name = "Authorization Source"; value = $_.authorizationSource },
                 @{ name = "State"; value = $_.state },
-                @{ name = "Tags"; value = ($subscriptionDetails.tags -join ", ") }
+                @{ name = "Tags"; value = $subscriptionTags }
             )
         }
 
