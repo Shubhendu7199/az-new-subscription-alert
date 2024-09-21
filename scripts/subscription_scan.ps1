@@ -118,7 +118,8 @@ if (Test-Path $fileYesterday) {
         $newSubscriptions | Format-Table
 
         # Create facts array for each new subscription
-        $subscriptionsFormatted = $newSubscriptions | ForEach-Object {
+        $subscriptionsFormatted = @()  # Initialize an empty array to store formatted subscription facts
+        $newSubscriptions | ForEach-Object {
             $subscriptionTags = az tag list --resource-id $_.id --output json | ConvertFrom-Json
             $tagsFormatted = if ($subscriptionTags.properties.tags) {
                 $subscriptionTags.properties.tags.GetEnumerator() | ForEach-Object { "$($_.Key): $($_.Value)" } -join ", "
@@ -126,26 +127,14 @@ if (Test-Path $fileYesterday) {
                 "No tags"
             }
 
-            @{
-                "name" = "**Subscription ID**"
-                "value" = "`n$($_.subscriptionId)`n---"
-            },
-            @{
-                "name" = "**Authorization Source**"
-                "value" = $_.authorizationSource
-            },
-            @{
-                "name" = "**State**"
-                "value" = $_.state
-            },
-            @{
-                "name" = "**Tags**"
-                "value" = $tagsFormatted
-            },
-            @{
-                "name" = " "  # Add a blank row to separate subscriptions
-                "value" = "`n---`n"
-            }
+            # Append each subscription's facts to the array
+            $subscriptionsFormatted += @(
+                @{ name = "**Subscription ID**"; value = "`n$($_.subscriptionId)`n---" },
+                @{ name = "**Authorization Source**"; value = $_.authorizationSource },
+                @{ name = "**State**"; value = $_.state },
+                @{ name = "**Tags**"; value = $tagsFormatted },
+                @{ name = " "; value = "`n---`n" }  # Add a blank row to separate subscriptions
+            )
         }
 
         # Prepare the message body for Teams
