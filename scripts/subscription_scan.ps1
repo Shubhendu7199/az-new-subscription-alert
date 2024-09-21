@@ -126,13 +126,13 @@ if (Test-Path $fileYesterday) {
         $subscriptionsFormatted = @()  # Initialize an empty array to store formatted subscription facts
         $newSubscriptions | ForEach-Object {
             $subscriptionTags = az tag list --resource-id $_.id --output json | ConvertFrom-Json
-            $tagsFormatted = if ($subscriptionTags.properties.tags) {
-                $tagStrings = $tagOutput.properties.tags.PSObject.Properties | ForEach-Object { "$($_.Name): $($_.Value)" }
+            $tagsFormatted = if ($subscriptionTags.properties.tags.Count -gt 0) {
+                $tagStrings = $subscriptionTags.properties.tags.PSObject.Properties | ForEach-Object { "$($_.Name): $($_.Value)" }
                 $tagStrings -join ", "
             } else {
                 "No tags"
             }
-
+            
             # Append each subscription's facts to the array
             $subscriptionsFormatted += @(
                 @{ name = "**Subscription ID**"; value = "`n$($_.subscriptionId)`n---" },
