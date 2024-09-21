@@ -113,6 +113,11 @@ if (Test-Path $fileYesterday) {
         $_.subscriptionId -notin ($previousSubscriptions | ForEach-Object { $_.subscriptionId })
     }
 
+    # Ensure $newSubscriptions is treated as a collection, even if it's a single item
+    if ($null -ne $newSubscriptions -and -not ($newSubscriptions -is [System.Collections.IEnumerable])) {
+        $newSubscriptions = @($newSubscriptions)
+    }
+
     if ($newSubscriptions.Count -gt 0) {
         Write-Host "New subscriptions found:"
         $newSubscriptions | Format-Table
@@ -122,7 +127,8 @@ if (Test-Path $fileYesterday) {
         $newSubscriptions | ForEach-Object {
             $subscriptionTags = az tag list --resource-id $_.id --output json | ConvertFrom-Json
             $tagsFormatted = if ($subscriptionTags.properties.tags) {
-                $subscriptionTags.properties.tags.GetEnumerator() | ForEach-Object { "$($_.Key): $($_.Value)" } -join ", "
+                $tagStrings = $tagOutput.properties.tags.PSObject.Properties | ForEach-Object { "$($_.Name): $($_.Value)" }
+                $tagStrings -join ", "
             } else {
                 "No tags"
             }
@@ -185,3 +191,4 @@ foreach ($file in $filesToDelete) {
 }
 
 Write-Host "Script completed."
+
