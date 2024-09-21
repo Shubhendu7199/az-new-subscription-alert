@@ -128,7 +128,7 @@ if (Test-Path $fileYesterday) {
             $subscriptionTags = az tag list --resource-id $_.id --output json | ConvertFrom-Json
             $tagsFormatted = if ($subscriptionTags.properties.tags) {
                 $tagStrings = $subscriptionTags.properties.tags.PSObject.Properties | ForEach-Object { "• $($_.Name): $($_.Value)" }
-                $tagStrings -join "`n" 
+                $tagStrings -join "<br/>" 
             } else {
                 "No tags"
             }
