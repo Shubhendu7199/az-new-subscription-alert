@@ -136,12 +136,13 @@ if (Test-Path $fileYesterday) {
             # Append each subscription's facts to the array
 # Using single asterisk for bold
             $subscriptionsFormatted += @(
-                @{ name = "*Subscription ID*"; value = "`n$($_.subscriptionId)`n---" },
-                @{ name = "*Authorization Source*"; value = $_.authorizationSource },
-                @{ name = "*State*"; value = $_.state },
-                @{ name = "*Tags*"; value = $tagsFormatted },
+                @{ name = "<b>Subscription ID</b>"; value = "`n$($_.subscriptionId)`n---" },
+                @{ name = "<b>Authorization Source</b>"; value = $_.authorizationSource },
+                @{ name = "<b>State</b>"; value = $_.state },
+                @{ name = "<b>Tags</b>"; value = $tagsFormatted },
                 @{ name = " "; value = "`n---`n" }
             )
+
 
         }
     
