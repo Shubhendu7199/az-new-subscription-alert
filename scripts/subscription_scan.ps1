@@ -69,26 +69,27 @@ if (Test-Path $fileYesterday) {
     if ($newSubscriptions.Count -gt 0) {
         Write-Host "New subscriptions found:"
         $newSubscriptions | Format-Table
-
+    
         $subscriptionsFormatted = $newSubscriptions | ForEach-Object {
-            $tagOutput = az tag list --resource-id "/subscriptions/$($_.subscriptionId)" --output json | ConvertFrom-Json
-            $subscriptionTags = if ($tagOutput.properties.tags) {
-                $tagStrings = $tagOutput.properties.tags.PSObject.Properties | ForEach-Object { "$($_.Name): $($_.Value)" }
-                $tagStrings -join ", "
+            $subscriptionTags = az tag list --resource-id $_.id --output json | ConvertFrom-Json
+            if ($subscriptionTags.properties.tags) {
+                $formattedTags = $subscriptionTags.properties.tags.GetEnumerator() | ForEach-Object {
+                    "$($_.Key): $($_.Value)"
+                } -join ", "
             } else {
-                "No tags"
+                $formattedTags = "No tags"
             }
-            
-                      
-            $subscriptionDetails = az account show --subscription $_.subscriptionId --output json | ConvertFrom-Json
+    
             @(
-                @{ name = "Subscription ID"; value = $_.subscriptionId },
-                @{ name = "Authorization Source"; value = $_.authorizationSource },
-                @{ name = "State"; value = $_.state },
-                @{ name = "Tags"; value = $subscriptionTags }
-            )
-        }
-
+                "--------------------",
+                "**Subscription Details:**",
+                "**Subscription ID**: $($_.subscriptionId)",
+                "**Authorization Source**: $($_.authorizationSource)",
+                "**State**: $($_.state)",
+                "**Tags**: $formattedTags"
+            ) -join "`n"
+        } -join "`n`n"  # Double line break between subscriptions for better separation
+    
         $body = @{
             "@type" = "MessageCard"
             "@context" = "http://schema.org/extensions"
@@ -96,26 +97,25 @@ if (Test-Path $fileYesterday) {
             themeColor = "0078D7"
             title = "New Azure Subscriptions Found"
             sections = @(
-              @{
-                activityTitle = "New Azure Subscriptions:"
-                facts = $subscriptionsFormatted 
-              }
+                @{
+                    activityTitle = "New Azure Subscriptions:"
+                    text = $subscriptionsFormatted
+                }
             )
-          }
-        
-
+        }
+    
         $jsonBody = $body | ConvertTo-Json -Depth 10
-        
+    
         if (-not [string]::IsNullOrEmpty($env:TEAMS_WEBHOOK_URL)) {
             Invoke-RestMethod -Method Post -Uri $env:TEAMS_WEBHOOK_URL -ContentType 'application/json' -Body $jsonBody
             Write-Host "Teams notification sent."
         } else {
             Write-Host "Teams webhook URL is not set."
         }
-
+    
     } else {
         Write-Host "No new subscriptions found."
-    }
+    }    
 } else {
     Write-Host "Yesterday's subscription file not found. This is likely the first run."
 }
