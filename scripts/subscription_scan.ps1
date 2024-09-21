@@ -137,6 +137,19 @@ if (Test-Path $fileYesterday) {
                 @{ name = " "; value = "`n---`n" }
             )
 
+            $subscriptionLogEntry = @{
+                PartitionKey = "Subscriptions"
+                RowKey = [Guid]::NewGuid().ToString()
+                SubscriptionID = $_.subscriptionId
+                SubscriptionName = $_.displayName
+                AuthorizationSource = $_.authorizationSource
+                State = $_.state
+                Tags = $tagsFormatted
+                CreationDate = (Get-Date).ToString("yyyy-MM-dd")
+            }
+
+            az storage entity insert --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY `
+                --table-name "NewSubscriptionsLog" --entity $subscriptionLogEntry --output none
 
         }
     
