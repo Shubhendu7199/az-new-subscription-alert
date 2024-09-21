@@ -216,20 +216,20 @@ if (Test-Path $fileYesterday) {
             )
 
             # Append each new subscription to Azure Table Storage
-            $subscriptionLogEntry = @(
-                "PartitionKey=$today",
-                "RowKey=" + [Guid]::NewGuid().ToString(),
-                "SubscriptionID=$($_.subscriptionId)",
-                "SubscriptionName=$($_.displayName)",
-                "AuthorizationSource=$($_.authorizationSource)",
-                "State=$($_.state)",
-                "Tags=$tagsFormatted",
-                "CreationDate=$today"
-            ) -join ' '
+            $subscriptionLogEntry = @{
+                PartitionKey = "Subscriptions"
+                RowKey = [Guid]::NewGuid().ToString()  # Generate a unique RowKey
+                SubscriptionID = $_.subscriptionId
+                SubscriptionName = $_.displayName
+                AuthorizationSource = $_.authorizationSource
+                State = $_.state
+                Tags = $tagsFormatted
+                CreationDate = (Get-Date).ToString("yyyy-MM-dd")
+            }
 
             try {
                 az storage entity insert --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY `
-                    --table-name $tableName --entity $subscriptionLogEntry --output none
+        --table-name "NewSubscriptionsLog" --entity $subscriptionLogEntry --output none
             } catch {
                 Write-Host "Error: Failed to log new subscription to Azure Table Storage."
             }
