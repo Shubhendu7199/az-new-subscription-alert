@@ -75,7 +75,8 @@ if (Test-Path $fileYesterday) {
             if ($subscriptionTags.properties.tags) {
                 $formattedTags = $subscriptionTags.properties.tags.GetEnumerator() | ForEach-Object {
                     "$($_.Key): $($_.Value)"
-                } -join ", "
+                } | Out-String
+                $formattedTags = $formattedTags -replace "`r`n", ", "  # Remove line breaks and add commas
             } else {
                 $formattedTags = "No tags"
             }
@@ -87,7 +88,7 @@ if (Test-Path $fileYesterday) {
                 "**Authorization Source**: $($_.authorizationSource)",
                 "**State**: $($_.state)",
                 "**Tags**: $formattedTags"
-            ) -join "`n"
+            ) | Out-String
         } -join "`n`n"  # Double line break between subscriptions for better separation
     
         $body = @{
@@ -115,7 +116,7 @@ if (Test-Path $fileYesterday) {
     
     } else {
         Write-Host "No new subscriptions found."
-    }    
+    }        
 } else {
     Write-Host "Yesterday's subscription file not found. This is likely the first run."
 }
