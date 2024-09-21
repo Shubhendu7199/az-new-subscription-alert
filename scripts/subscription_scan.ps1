@@ -133,9 +133,8 @@ if (Test-Path $fileYesterday) {
                 "No tags"
             }
     
-            # Append each subscription's facts to the array
-# Using single asterisk for bold
             $subscriptionsFormatted += @(
+                @{ name = "<b>=== New Subscription ===</b>"; value = "" },
                 @{ name = "<b>Subscription ID</b>"; value = "`n$($_.subscriptionId)`n---" },
                 @{ name = "<b>Authorization Source</b>"; value = $_.authorizationSource },
                 @{ name = "<b>State</b>"; value = $_.state },
@@ -146,7 +145,6 @@ if (Test-Path $fileYesterday) {
 
         }
     
-        # Prepare the message body for Teams
         $body = @{
             "@type" = "MessageCard"
             "@context" = "http://schema.org/extensions"
@@ -161,7 +159,6 @@ if (Test-Path $fileYesterday) {
             )
         }
     
-        # Send notification to Microsoft Teams
         $jsonBody = $body | ConvertTo-Json -Depth 10
         if (-not [string]::IsNullOrEmpty($env:TEAMS_WEBHOOK_URL)) {
             Invoke-RestMethod -Method Post -Uri $env:TEAMS_WEBHOOK_URL -ContentType 'application/json' -Body $jsonBody
