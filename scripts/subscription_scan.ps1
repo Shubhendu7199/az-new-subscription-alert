@@ -166,8 +166,8 @@ if (Test-Path $fileYesterday) {
             "@type" = "MessageCard"
             "@context" = "http://schema.org/extensions"
             summary = "No New Azure Subscriptions Found"
-            themeColor = "FFA500"  # Orange color for no new subscriptions
-            title = "🔔 No New Azure Subscriptions Found - $currentDate"
+            themeColor = "FFA500"
+            title = "🔔 No New Azure Subscriptions Found - $today"
             text = "There were no new Azure subscriptions detected since yesterday."
         }
 
