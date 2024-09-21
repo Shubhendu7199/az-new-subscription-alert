@@ -73,10 +73,10 @@ if (Test-Path $fileYesterday) {
         $subscriptionsFormatted = $newSubscriptions | ForEach-Object {
             $tagOutput = az tag list --resource-id "/subscriptions/$($_.subscriptionId)" --output json | ConvertFrom-Json
             $subscriptionTags = if ($tagOutput.properties.tags) {
-                $tagOutput.properties.tags.GetEnumerator() | ForEach-Object { "$($_.Key): $($_.Value)" } -join ", "
+                $tagOutput.properties.tags.PSObject.Properties | ForEach-Object { "$($_.Name): $($_.Value)" } -join ", "
             } else {
                 "No tags"
-            }
+            }            
             $subscriptionDetails = az account show --subscription $_.subscriptionId --output json | ConvertFrom-Json
             @(
                 @{ name = "Subscription ID"; value = $_.subscriptionId },
