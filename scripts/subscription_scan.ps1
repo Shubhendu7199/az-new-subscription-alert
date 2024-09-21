@@ -136,6 +136,7 @@ if (Test-Path $fileYesterday) {
             $subscriptionsFormatted += @(
                 @{ name = "<b>=== New Subscription ===</b>"; value = "" },
                 @{ name = "<b>Subscription ID</b>"; value = "`n$($_.subscriptionId)`n---" },
+                @{ name = "<b>Subscription Name</b>"; value = "`n$($subscriptionDetails.name)`n---" },
                 @{ name = "<b>Authorization Source</b>"; value = $_.authorizationSource },
                 @{ name = "<b>State</b>"; value = $_.state },
                 @{ name = "<b>Tags</b>"; value = $tagsFormatted },
@@ -149,7 +150,7 @@ if (Test-Path $fileYesterday) {
             "@type" = "MessageCard"
             "@context" = "http://schema.org/extensions"
             summary = "New Azure Subscriptions Found"
-            themeColor = "0078D7"  # Change this color as needed
+            themeColor = "0078D7"
             title = "🚀 New Azure Subscriptions Found"
             sections = @(
                 @{
