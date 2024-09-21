@@ -94,25 +94,21 @@ $yesterday = (Get-Date).AddDays(-1).ToString("yyyy-MM-dd")
 $fileToday = "subscriptions_$today.json"
 $fileYesterday = "subscriptions_$yesterday.json"
 
-# Fetch current subscriptions using Azure CLI
 $currentSubscriptions = az account subscription list --output json | ConvertFrom-Json
 
-# Define container and blob storage variables
 $containerName = "subs"
 $yesterdayBlobUrl = "https://$env:AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$containerName/$fileYesterday"
 
-# Download yesterday's subscription file if it exists
+
 $yesterdayContent = az storage blob download --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --name $fileYesterday --file $fileYesterday --output none
 if (Test-Path $fileYesterday) {
-    # Parse the previous day's subscriptions
+
     $previousSubscriptions = Get-Content -Path $fileYesterday | ConvertFrom-Json
 
-    # Find new subscriptions
     $newSubscriptions = $currentSubscriptions | Where-Object {
         $_.subscriptionId -notin ($previousSubscriptions | ForEach-Object { $_.subscriptionId })
     }
 
-    # Ensure $newSubscriptions is treated as a collection, even if it's a single item
     if ($null -ne $newSubscriptions -and -not ($newSubscriptions -is [System.Collections.IEnumerable])) {
         $newSubscriptions = @($newSubscriptions)
     }
@@ -121,7 +117,6 @@ if (Test-Path $fileYesterday) {
         Write-Host "New subscriptions found:"
         $newSubscriptions | Format-Table
     
-        # Create facts array for each new subscription
         $subscriptionsFormatted = @()  
         $newSubscriptions | ForEach-Object {
             $subscriptionTags = az tag list --resource-id $_.id --output json | ConvertFrom-Json
@@ -167,20 +162,33 @@ if (Test-Path $fileYesterday) {
             Write-Host "Teams webhook URL is not set."
         }
     } else {
-        Write-Host "No new subscriptions found."
+        $noNewSubsBody = @{
+            "@type" = "MessageCard"
+            "@context" = "http://schema.org/extensions"
+            summary = "No New Azure Subscriptions Found"
+            themeColor = "FFA500"  # Orange color for no new subscriptions
+            title = "🔔 No New Azure Subscriptions Found - $currentDate"
+            text = "There were no new Azure subscriptions detected since yesterday."
+        }
+
+        $jsonNoNewSubsBody = $noNewSubsBody | ConvertTo-Json -Depth 10
+
+        if (-not [string]::IsNullOrEmpty($env:TEAMS_WEBHOOK_URL)) {
+            Invoke-RestMethod -Method Post -Uri $env:TEAMS_WEBHOOK_URL -ContentType 'application/json' -Body $jsonNoNewSubsBody
+            Write-Host "Teams notification for no new subscriptions sent."
+        } else {
+            Write-Host "Teams webhook URL is not set."
+        }
     }
     
 } else {
     Write-Host "Yesterday's subscription file not found. This is likely the first run."
 }
 
-# Save today's subscription data to a JSON file
 $currentSubscriptions | ConvertTo-Json | Set-Content -Path $fileToday
 
-# Upload today's subscription file to Azure Blob Storage
 az storage blob upload --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --name $fileToday --file $fileToday --overwrite --output none
 
-# Delete old subscription files older than 30 days
 $filesToDelete = az storage blob list --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --output json |
     ConvertFrom-Json | Where-Object { (Get-Date $_.properties.lastModified) -lt (Get-Date).AddDays(-30) }
 
