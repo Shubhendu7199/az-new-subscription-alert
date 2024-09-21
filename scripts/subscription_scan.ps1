@@ -103,7 +103,6 @@ $yesterdayBlobUrl = "https://$env:AZURE_STORAGE_ACCOUNT.blob.core.windows.net/$c
 
 # Download yesterday's subscription file if it exists
 $yesterdayContent = az storage blob download --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --name $fileYesterday --file $fileYesterday --output none
-
 if (Test-Path $fileYesterday) {
     # Parse the previous day's subscriptions
     $previousSubscriptions = Get-Content -Path $fileYesterday | ConvertFrom-Json
@@ -151,7 +150,7 @@ if (Test-Path $fileYesterday) {
             "@context" = "http://schema.org/extensions"
             summary = "New Azure Subscriptions Found"
             themeColor = "0078D7"
-            title = "🚀 New Azure Subscriptions Found"
+            title = "🚀 New Azure Subscriptions Found - $today"
             sections = @(
                 @{
                     activityTitle = "Details of newly detected Azure Subscriptions:"
