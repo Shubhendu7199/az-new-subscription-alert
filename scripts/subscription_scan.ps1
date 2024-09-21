@@ -136,7 +136,7 @@ if (Test-Path $fileYesterday) {
             $subscriptionsFormatted += @(
                 @{ name = "<b>=== New Subscription ===</b>"; value = "" },
                 @{ name = "<b>Subscription ID</b>"; value = "`n$($_.subscriptionId)`n---" },
-                @{ name = "<b>Subscription Name</b>"; value = "`n$($subscriptionDetails.name)`n---" },
+                @{ name = "<b>Subscription Name</b>"; value = "`n$($_.displayName)`n---" },
                 @{ name = "<b>Authorization Source</b>"; value = $_.authorizationSource },
                 @{ name = "<b>State</b>"; value = $_.state },
                 @{ name = "<b>Tags</b>"; value = $tagsFormatted },
