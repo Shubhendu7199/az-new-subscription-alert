@@ -121,57 +121,55 @@ if (Test-Path $fileYesterday) {
     if ($newSubscriptions.Count -gt 0) {
         Write-Host "New subscriptions found:"
         $newSubscriptions | Format-Table
-
+    
         # Create facts array for each new subscription
-        $subscriptionsFormatted = @()  # Initialize an empty array to store formatted subscription facts
+        $subscriptionsFormatted = @()  
         $newSubscriptions | ForEach-Object {
             $subscriptionTags = az tag list --resource-id $_.id --output json | ConvertFrom-Json
-            $tagsFormatted = if ($subscriptionTags.properties.tags.Count -gt 0) {
-                $tagStrings = $subscriptionTags.properties.tags.PSObject.Properties | ForEach-Object { "$($_.Name): $($_.Value)" }
-                $tagStrings -join ", "
+            $tagsFormatted = if ($subscriptionTags.properties.tags) {
+                $tagStrings = $subscriptionTags.properties.tags.PSObject.Properties | ForEach-Object { "• $($_.Name): $($_.Value)" }
+                $tagStrings -join "`n" 
             } else {
                 "No tags"
             }
-            
+    
             # Append each subscription's facts to the array
             $subscriptionsFormatted += @(
                 @{ name = "**Subscription ID**"; value = "`n$($_.subscriptionId)`n---" },
                 @{ name = "**Authorization Source**"; value = $_.authorizationSource },
                 @{ name = "**State**"; value = $_.state },
                 @{ name = "**Tags**"; value = $tagsFormatted },
-                @{ name = " "; value = "`n---`n" }  # Add a blank row to separate subscriptions
+                @{ name = " "; value = "`n---`n" } 
             )
         }
-
+    
         # Prepare the message body for Teams
         $body = @{
             "@type" = "MessageCard"
             "@context" = "http://schema.org/extensions"
             summary = "New Azure Subscriptions Found"
-            themeColor = "0078D7"
-            title = "New Azure Subscriptions Found"
+            themeColor = "0078D7"  # Change this color as needed
+            title = "🚀 New Azure Subscriptions Found"
             sections = @(
                 @{
-                    activityTitle = "New Azure Subscriptions"
-                    activitySubtitle = "Details of newly detected Azure Subscriptions:"
+                    activityTitle = "Details of newly detected Azure Subscriptions:"
                     facts = $subscriptionsFormatted
                 }
             )
         }
-
-        $jsonBody = $body | ConvertTo-Json -Depth 10
-        
+    
         # Send notification to Microsoft Teams
+        $jsonBody = $body | ConvertTo-Json -Depth 10
         if (-not [string]::IsNullOrEmpty($env:TEAMS_WEBHOOK_URL)) {
             Invoke-RestMethod -Method Post -Uri $env:TEAMS_WEBHOOK_URL -ContentType 'application/json' -Body $jsonBody
             Write-Host "Teams notification sent."
         } else {
             Write-Host "Teams webhook URL is not set."
         }
-
     } else {
         Write-Host "No new subscriptions found."
     }
+    
 } else {
     Write-Host "Yesterday's subscription file not found. This is likely the first run."
 }
