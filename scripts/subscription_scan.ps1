@@ -131,13 +131,13 @@ function Ensure-TableExists {
         [string]$accountKey
     )
 
-    $existingTables = az storage table list --account-name $accountName --account-key $accountKey --output json | ConvertFrom-Json
+    $existingTables = az storage table list --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --output json | ConvertFrom-Json
     $tableExists = $existingTables | Where-Object { $_.TableName -eq $tableName }
 
     if (-not $tableExists) {
         Write-Host "Table '$tableName' does not exist. Creating it..."
         try {
-            az storage table create --name $tableName --account-name $accountName --account-key $accountKey --output none
+            az storage table create --name $tableName --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --output none
             Write-Host "Table '$tableName' created successfully."
         } catch {
             Write-Host "Error: Failed to create the table."
@@ -167,13 +167,13 @@ $accountName = $env:AZURE_STORAGE_ACCOUNT
 $accountKey = $env:AZURE_STORAGE_KEY
 
 # Ensure that the table exists before proceeding with inserting entities
-Ensure-TableExists -tableName $tableName -accountName $accountName -accountKey $accountKey
+Ensure-TableExists -tableName $tableName -accountName $env:AZURE_STORAGE_ACCOUNT -accountKey $env:AZURE_STORAGE_KEY
 
 $yesterdayBlobUrl = "https://$accountName.blob.core.windows.net/$containerName/$fileYesterday"
 
 try {
     # Download yesterday's subscription file if it exists
-    $yesterdayContent = az storage blob download --account-name $accountName --account-key $accountKey --container-name $containerName --name $fileYesterday --file $fileYesterday --output none
+    $yesterdayContent = az storage blob download --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --name $fileYesterday --file $fileYesterday --output none
 } catch {
     Write-Host "Warning: Could not download the file for yesterday ($fileYesterday). It might be the first run."
 }
@@ -228,7 +228,7 @@ if (Test-Path $fileYesterday) {
             ) -join ' '
 
             try {
-                az storage entity insert --account-name $accountName --account-key $accountKey `
+                az storage entity insert --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY `
                     --table-name $tableName --entity $subscriptionLogEntry --output none
             } catch {
                 Write-Host "Error: Failed to log new subscription to Azure Table Storage."
@@ -288,18 +288,18 @@ $currentSubscriptions | ConvertTo-Json | Set-Content -Path $fileToday
 
 try {
     # Upload today's subscription file to Azure Blob Storage
-    az storage blob upload --account-name $accountName --account-key $accountKey --container-name $containerName --name $fileToday --file $fileToday --overwrite --output none
+    az storage blob upload --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --name $fileToday --file $fileToday --overwrite --output none
 } catch {
     Write-Host "Error: Failed to upload today's subscription file."
 }
 
 # Delete old subscription files older than 30 days
 try {
-    $filesToDelete = az storage blob list --account-name $accountName --account-key $accountKey --container-name $containerName --output json |
+    $filesToDelete = az storage blob list --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --output json |
         ConvertFrom-Json | Where-Object { (Get-Date $_.properties.lastModified) -lt (Get-Date).AddDays(-30) }
 
     foreach ($file in $filesToDelete) {
-        az storage blob delete --account-name $accountName --account-key $accountKey --container-name $containerName --name $file.name --output none
+        az storage blob delete --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --name $file.name --output none
     }
 
     Write-Host "Old files deleted successfully."
