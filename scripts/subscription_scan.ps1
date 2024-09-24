@@ -121,32 +121,6 @@
 # Write-Host "Script completed."
 
 
-
-
-# Function to check and create the table if it doesn't exist
-function Ensure-TableExists {
-    param (
-        [string]$tableName,
-        [string]$accountName,
-        [string]$accountKey
-    )
-
-    $existingTables = az storage table list --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --output json | ConvertFrom-Json
-    $tableExists = $existingTables | Where-Object { $_.TableName -eq $tableName }
-
-    if (-not $tableExists) {
-        Write-Host "Table '$tableName' does not exist. Creating it..."
-        try {
-            az storage table create --name $tableName --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --output none
-            Write-Host "Table '$tableName' created successfully."
-        } catch {
-            Write-Host "Error: Failed to create the table."
-        }
-    } else {
-        Write-Host "Table '$tableName' already exists."
-    }
-}
-
 # Set current and previous day dates
 $today = (Get-Date).ToString("yyyy-MM-dd")
 $yesterday = (Get-Date).AddDays(-1).ToString("yyyy-MM-dd")
@@ -162,17 +136,12 @@ if ($null -eq $currentSubscriptions) {
 }
 
 $containerName = "subs"
-$tableName = "NewSubscriptionsLog"
 $accountName = $env:AZURE_STORAGE_ACCOUNT
 $accountKey = $env:AZURE_STORAGE_KEY
-
-# Ensure that the table exists before proceeding with inserting entities
-Ensure-TableExists -tableName $tableName -accountName $env:AZURE_STORAGE_ACCOUNT -accountKey $env:AZURE_STORAGE_KEY
 
 $yesterdayBlobUrl = "https://$accountName.blob.core.windows.net/$containerName/$fileYesterday"
 
 try {
-    # Download yesterday's subscription file if it exists
     $yesterdayContent = az storage blob download --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --name $fileYesterday --file $fileYesterday --output none
 } catch {
     Write-Host "Warning: Could not download the file for yesterday ($fileYesterday). It might be the first run."
@@ -214,25 +183,6 @@ if (Test-Path $fileYesterday) {
                 @{ name = "<b>Tags</b>"; value = $tagsFormatted },
                 @{ name = " "; value = "`n---`n" }
             )
-
-            # Append each new subscription to Azure Table Storage
-            $subscriptionLogEntry = @{
-                PartitionKey = "Subscriptions"
-                RowKey = [Guid]::NewGuid().ToString()  # Generate a unique RowKey
-                SubscriptionID = $_.subscriptionId
-                SubscriptionName = $_.displayName
-                AuthorizationSource = $_.authorizationSource
-                State = $_.state
-                Tags = $tagsFormatted
-                CreationDate = (Get-Date).ToString("yyyy-MM-dd")
-            }
-
-            try {
-                az storage entity insert --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY `
-        --table-name "NewSubscriptionsLog" --entity $subscriptionLogEntry --output none
-            } catch {
-                Write-Host "Error: Failed to log new subscription to Azure Table Storage."
-            }
         }
 
         $body = @{
