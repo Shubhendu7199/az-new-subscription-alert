@@ -182,7 +182,7 @@ if (Test-Path $fileYesterday) {
                 @{ name = " "; value = "`n---`n" }
             )
 
-            $potentialAction = @(
+            $potentialActions += @(
                 @{
                     "@type" = "OpenUri"
                     name = "View Subscription Overview"
