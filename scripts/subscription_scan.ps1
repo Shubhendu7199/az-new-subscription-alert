@@ -148,8 +148,6 @@
 
 # Write-Host "Script completed."
 
-
-# Function to store new subscriptions in Azure Table Storage
 function Add-SubscriptionToTable {
     param (
         [string]$subscriptionId,
@@ -172,8 +170,6 @@ function Add-SubscriptionToTable {
     # Insert entity into Azure Table Storage
     az storage entity insert --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --table-name "SubscriptionData" --entity $tableEntity
 }
-
-# Start of the script
 $today = (Get-Date).ToString("yyyy-MM-dd")
 $yesterday = (Get-Date).AddDays(-1).ToString("yyyy-MM-dd")
 $fileToday = "subscriptions_$today.json"
@@ -191,8 +187,10 @@ $containerName = "subs"
 $accountName = $env:AZURE_STORAGE_ACCOUNT
 $accountKey = $env:AZURE_STORAGE_KEY
 
+$yesterdayBlobUrl = "https://$accountName.blob.core.windows.net/$containerName/$fileYesterday"
+
 try {
-    $yesterdayContent = az storage blob download --account-name $accountName --account-key $accountKey --container-name $containerName --name $fileYesterday --file $fileYesterday --output none
+    $yesterdayContent = az storage blob download --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --name $fileYesterday --file $fileYesterday --output none
 } catch {
     Write-Host "Warning: Could not download the file for yesterday ($fileYesterday). It might be the first run."
 }
@@ -213,8 +211,6 @@ if (Test-Path $fileYesterday) {
         $newSubscriptions | Format-Table
 
         $subscriptionsFormatted = @()
-        $potentialActions = @()
-
         $newSubscriptions | ForEach-Object {
             $subscriptionTags = az tag list --resource-id $_.id --output json | ConvertFrom-Json
             $tagsFormatted = if ($subscriptionTags.properties.tags) {
@@ -224,7 +220,7 @@ if (Test-Path $fileYesterday) {
                 "No tags"
             }
 
-            $subscriptionOverviewUrl = "https://portal.azure.com/#@$tenantId/resource/subscriptions/$($_.subscriptionId)/overview"
+        $subscriptionOverviewUrl = "https://portal.azure.com/#@$tenantId/resource/subscriptions/$($_.subscriptionId)/overview"
 
             $subscriptionsFormatted += @(
                 @{ name = "<b>=== New Subscription ===</b>"; value = "" },
@@ -249,12 +245,10 @@ if (Test-Path $fileYesterday) {
                     )
                 }
             )
-
-            # Store the subscription in Azure Table Storage
             Add-SubscriptionToTable -subscriptionId $_.subscriptionId -subscriptionName $_.displayName -tags $tagsFormatted -state $_.state -date $today
         }
 
-        $body = @ {
+        $body = @{
             "@type" = "MessageCard"
             "@context" = "http://schema.org/extensions"
             summary = "New Azure Subscriptions Found"
@@ -279,7 +273,7 @@ if (Test-Path $fileYesterday) {
     } else {
         Write-Host "No new subscriptions found."
 
-        $noNewSubsBody = @ {
+        $noNewSubsBody = @{
             "@type" = "MessageCard"
             "@context" = "http://schema.org/extensions"
             summary = "No New Azure Subscriptions Found"
@@ -302,20 +296,22 @@ if (Test-Path $fileYesterday) {
     Write-Host "Yesterday's subscription file not found. This is likely the first run."
 }
 
+
 $currentSubscriptions | ConvertTo-Json | Set-Content -Path $fileToday
 
 try {
-    az storage blob upload --account-name $accountName --account-key $accountKey --container-name $containerName --tier Cool --name $fileToday --file $fileToday --overwrite --output none
+
+    az storage blob upload --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --tier Cool --name $fileToday --file $fileToday --overwrite --output none
 } catch {
     Write-Host "Error: Failed to upload today's subscription file."
 }
 
 try {
-    $filesToDelete = az storage blob list --account-name $accountName --account-key $accountKey --container-name $containerName --output json |
+    $filesToDelete = az storage blob list --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --output json |
         ConvertFrom-Json | Where-Object { (Get-Date $_.properties.lastModified) -lt (Get-Date).AddDays(-30) }
 
     foreach ($file in $filesToDelete) {
-        az storage blob delete --account-name $accountName --account-key $accountKey --container-name $containerName --name $file.name --output none
+        az storage blob delete --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --name $file.name --output none
     }
 
     Write-Host "Old files deleted successfully."
@@ -324,6 +320,3 @@ try {
 }
 
 Write-Host "Script completed."
-
-
-
