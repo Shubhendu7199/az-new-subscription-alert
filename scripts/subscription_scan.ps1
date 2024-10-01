@@ -128,7 +128,7 @@ $currentSubscriptions | ConvertTo-Json | Set-Content -Path $fileToday
 
 try {
 
-    az storage blob upload --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --name $fileToday --file $fileToday --overwrite --output none
+    az storage blob upload --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --tier Cool --name $fileToday --file $fileToday --overwrite --output none
 } catch {
     Write-Host "Error: Failed to upload today's subscription file."
 }
