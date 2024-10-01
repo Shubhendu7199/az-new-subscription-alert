@@ -179,7 +179,7 @@ if (Test-Path $fileYesterday) {
                 @{ name = "<b>Authorization Source</b>"; value = $_.authorizationSource },
                 @{ name = "<b>State</b>"; value = $_.state },
                 @{ name = "<b>Tags</b>"; value = $tagsFormatted },
-                @{ name = "<b>View Subscription Overview</b>"; value = "[View Subscription Overview]($subscriptionOverviewUrl)" },
+                @{ name = ""; value = "[View Subscription Overview]($subscriptionOverviewUrl)" },
                 @{ name = " "; value = "`n---`n" }
             )
 
