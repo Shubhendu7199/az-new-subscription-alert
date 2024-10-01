@@ -206,7 +206,7 @@ if (Test-Path $fileYesterday) {
                 @{
                     activityTitle = "Details of newly detected Azure Subscriptions:"
                     facts = $subscriptionsFormatted
-                    potentialAction = $potentialAction
+                    potentialAction = $potentialActions
                 }
             )
         }
