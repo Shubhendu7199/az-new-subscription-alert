@@ -175,23 +175,25 @@ function Add-SubscriptionToTable {
         exit 1
     }
 
-    # Insert entity into Azure Table Storage by passing each key-value pair separately
+    # Construct the entity as a JSON string
+    $entityJson = @{
+        PartitionKey      = "SubscriptionData"
+        RowKey            = $subscriptionId
+        Date              = $date
+        SubscriptionID    = $subscriptionId
+        SubscriptionName  = $subscriptionName
+        Tags              = $tags
+        State             = $state
+    } | ConvertTo-Json -Compress
+
+    # Insert entity into Azure Table Storage
     try {
         Write-Host "Inserting entity with SubscriptionId $subscriptionId"
-        az storage entity insert --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --table-name $tableName `
-            --entity PartitionKey=SubscriptionData `
-            --entity RowKey=$subscriptionId `
-            --entity Date=$date `
-            --entity SubscriptionID=$subscriptionId `
-            --entity "SubscriptionName='$subscriptionName'" `
-            --entity "Tags='$tags'" `
-            --entity State=$state
-
+        az storage entity insert --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --table-name $tableName --entity "$entityJson" --output none
         Write-Host "Subscription entity inserted successfully into Table Storage."
     } catch {
-        Write-Host "Error: Failed to insert entity into Table Storage. Error details: $_"
-    }
-}
+        Write-Host "Error: Failed to insert entity into Table Storage. Error details: $_
+
 
 
 $today = (Get-Date).ToString("yyyy-MM-dd")
