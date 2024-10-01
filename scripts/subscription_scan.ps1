@@ -148,6 +148,10 @@
 
 # Write-Host "Script completed."
 
+
+
+############################################################################################################################################################################
+# Function to store new subscriptions in Azure Table Storage
 function Add-SubscriptionToTable {
     param (
         [string]$subscriptionId,
@@ -157,19 +161,39 @@ function Add-SubscriptionToTable {
         [string]$date
     )
 
+    # Ensure the table exists, if not create it
+    $tableName = "SubscriptionData"
+    try {
+        $tableExists = az storage table exists --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --name $tableName --query exists --output tsv
+        if ($tableExists -eq "false") {
+            Write-Host "Table $tableName does not exist. Creating table..."
+            az storage table create --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --name $tableName --output none
+            Write-Host "Table $tableName created successfully."
+        }
+    } catch {
+        Write-Host "Error: Failed to check or create the table. Error details: $_"
+        exit 1
+    }
+
     $tableEntity = @{
-        PartitionKey   = "SubscriptionData"
-        RowKey         = $subscriptionId
-        Date           = $date
-        SubscriptionID = $subscriptionId
-        SubscriptionName = $subscriptionName
-        Tags           = $tags
-        State          = $state
+        PartitionKey      = "SubscriptionData"
+        RowKey            = $subscriptionId
+        Date              = $date
+        SubscriptionID    = $subscriptionId
+        SubscriptionName  = $subscriptionName
+        Tags              = $tags
+        State             = $state
     }
 
     # Insert entity into Azure Table Storage
-    az storage entity insert --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --table-name "SubscriptionData" --entity $tableEntity
+    try {
+        az storage entity insert --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --table-name $tableName --entity $tableEntity
+        Write-Host "Subscription entity inserted successfully into Table Storage."
+    } catch {
+        Write-Host "Error: Failed to insert entity into Table Storage. Error details: $_"
+    }
 }
+
 $today = (Get-Date).ToString("yyyy-MM-dd")
 $yesterday = (Get-Date).AddDays(-1).ToString("yyyy-MM-dd")
 $fileToday = "subscriptions_$today.json"
