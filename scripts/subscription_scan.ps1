@@ -169,6 +169,9 @@ if (Test-Path $fileYesterday) {
                 "No tags"
             }
 
+        $subscriptionOverviewUrl = "https://portal.azure.com/6ea238e1-e641-4b55-840b-d9f8c69a6b12/resource/subscriptions/#@{0}/overview" -f $_.subscriptionId
+
+
             $subscriptionsFormatted += @(
                 @{ name = "<b>=== New Subscription ===</b>"; value = "" },
                 @{ name = "<b>Subscription ID</b>"; value = $_.subscriptionId },
@@ -177,6 +180,19 @@ if (Test-Path $fileYesterday) {
                 @{ name = "<b>State</b>"; value = $_.state },
                 @{ name = "<b>Tags</b>"; value = $tagsFormatted },
                 @{ name = " "; value = "`n---`n" }
+            )
+
+            $potentialAction = @(
+                @{
+                    "@type" = "OpenUri"
+                    name = "View Subscription Overview"
+                    targets = @(
+                        @{
+                            os = "default"
+                            uri = $subscriptionOverviewUrl
+                        }
+                    )
+                }
             )
         }
 
@@ -190,6 +206,7 @@ if (Test-Path $fileYesterday) {
                 @{
                     activityTitle = "Details of newly detected Azure Subscriptions:"
                     facts = $subscriptionsFormatted
+                    potentialAction = $potentialAction
                 }
             )
         }
