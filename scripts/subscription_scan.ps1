@@ -238,7 +238,7 @@ if (Test-Path $fileYesterday) {
             )
 
             $potentialActions += @(
-                @ {
+                @{
                     "@type" = "OpenUri"
                     name = "View Subscription Overview"
                     targets = @(
