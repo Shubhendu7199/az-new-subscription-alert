@@ -175,12 +175,18 @@ function Add-SubscriptionToTable {
         exit 1
     }
 
-    $entityString = "PartitionKey=SubscriptionData RowKey=$subscriptionId Date=$date SubscriptionID=$subscriptionId SubscriptionName='$subscriptionName' Tags='$tags' State=$state"
-
-    # Insert entity into Azure Table Storage
+    # Insert entity into Azure Table Storage by passing each key-value pair separately
     try {
-        Write-Host "Inserting entity: $entityString"
-        az storage entity insert --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --table-name $tableName --entity $entityString
+        Write-Host "Inserting entity with SubscriptionId $subscriptionId"
+        az storage entity insert --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --table-name $tableName `
+            --entity PartitionKey=SubscriptionData `
+            --entity RowKey=$subscriptionId `
+            --entity Date=$date `
+            --entity SubscriptionID=$subscriptionId `
+            --entity "SubscriptionName='$subscriptionName'" `
+            --entity "Tags='$tags'" `
+            --entity State=$state
+
         Write-Host "Subscription entity inserted successfully into Table Storage."
     } catch {
         Write-Host "Error: Failed to insert entity into Table Storage. Error details: $_"
