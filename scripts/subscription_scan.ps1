@@ -169,7 +169,7 @@ if (Test-Path $fileYesterday) {
                 "No tags"
             }
 
-        $subscriptionOverviewUrl = "https://portal.azure.com/6ea238e1-e641-4b55-840b-d9f8c69a6b12/resource/subscriptions/#@{0}/overview" -f $_.subscriptionId
+        $subscriptionOverviewUrl = "https://portal.azure.com/6ea238e1-e641-4b55-840b-d9f8c69a6b12/resource/subscriptions/$($_.subscriptionId)/overview"
 
 
             $subscriptionsFormatted += @(
