@@ -155,6 +155,31 @@ $fileToday = "subscriptions_$today.json"
 $fileYesterday = "subscriptions_$yesterday.json"
 $tenantId = (az account show --query tenantId -o tsv)
 
+# Function to store new subscriptions in Azure Table Storage
+function Add-SubscriptionToTable {
+    param (
+        $subscriptionId,
+        $subscriptionName,
+        $tags,
+        $state,
+        $date
+    )
+
+    $tableEntity = @{
+        PartitionKey = "SubscriptionData"
+        RowKey = $subscriptionId
+        Date = $date
+        SubscriptionID = $subscriptionId
+        SubscriptionName = $subscriptionName
+        Tags = $tags
+        State = $state
+    }
+
+    # Insert entity into Azure Table Storage
+    $tableEntity | ConvertTo-Json | Set-Content -Path "subscription_entity.json"
+    az storage entity insert --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --table-name "SubscriptionData" --entity @{"subscription_entity.json"}
+}
+
 $currentSubscriptions = az account subscription list --output json | ConvertFrom-Json
 
 if ($null -eq $currentSubscriptions) {
@@ -190,6 +215,8 @@ if (Test-Path $fileYesterday) {
         $newSubscriptions | Format-Table
 
         $subscriptionsFormatted = @()
+        $potentialActions = @()
+
         $newSubscriptions | ForEach-Object {
             $subscriptionTags = az tag list --resource-id $_.id --output json | ConvertFrom-Json
             $tagsFormatted = if ($subscriptionTags.properties.tags) {
@@ -213,20 +240,35 @@ if (Test-Path $fileYesterday) {
             )
 
             $potentialActions += @(
-                @{"@type" = "OpenUri"; name = "View Subscription Overview"; targets = @(@{ os = "default"; uri = $subscriptionOverviewUrl }) }
+                @ {
+                    "@type" = "OpenUri"
+                    name = "View Subscription Overview"
+                    targets = @(
+                        @{
+                            os = "default"
+                            uri = $subscriptionOverviewUrl
+                        }
+                    )
+                }
             )
 
-            # Add the subscription to Azure Table Storage
+            # Store the subscription in Azure Table Storage
             Add-SubscriptionToTable -subscriptionId $_.subscriptionId -subscriptionName $_.displayName -tags $tagsFormatted -state $_.state -date $today
         }
 
-        $body = @{
+        $body = @ {
             "@type" = "MessageCard"
             "@context" = "http://schema.org/extensions"
             summary = "New Azure Subscriptions Found"
             themeColor = "0078D7"
             title = "🚀 New Azure Subscriptions Found - $today"
-            sections = @(@{ activityTitle = "Details of newly detected Azure Subscriptions:"; facts = $subscriptionsFormatted; potentialAction = $potentialActions })
+            sections = @(
+                @{
+                    activityTitle = "Details of newly detected Azure Subscriptions:"
+                    facts = $subscriptionsFormatted
+                    potentialAction = $potentialActions
+                }
+            )
         }
 
         $jsonBody = $body | ConvertTo-Json -Depth 10
@@ -238,6 +280,24 @@ if (Test-Path $fileYesterday) {
         }
     } else {
         Write-Host "No new subscriptions found."
+
+        $noNewSubsBody = @ {
+            "@type" = "MessageCard"
+            "@context" = "http://schema.org/extensions"
+            summary = "No New Azure Subscriptions Found"
+            themeColor = "FFA500"
+            title = "🔔 No New Azure Subscriptions Found - $today"
+            text = "There were no new Azure subscriptions detected since yesterday."
+        }
+
+        $jsonNoNewSubsBody = $noNewSubsBody | ConvertTo-Json -Depth 10
+
+        if (-not [string]::IsNullOrEmpty($env:TEAMS_WEBHOOK_URL)) {
+            Invoke-RestMethod -Method Post -Uri $env:TEAMS_WEBHOOK_URL -ContentType 'application/json' -Body $jsonNoNewSubsBody
+            Write-Host "Teams notification for no new subscriptions sent."
+        } else {
+            Write-Host "Teams webhook URL is not set."
+        }
     }
 
 } else {
@@ -267,29 +327,4 @@ try {
 
 Write-Host "Script completed."
 
-# Function to store new subscriptions in Azure Table Storage
-# Function to store new subscriptions in Azure Table Storage
-function Add-SubscriptionToTable {
-    param (
-        $subscriptionId,
-        $subscriptionName,
-        $tags,
-        $state,
-        $date
-    )
-
-    $tableEntity = @{
-        PartitionKey = "SubscriptionData"
-        RowKey = $subscriptionId
-        Date = $date
-        SubscriptionID = $subscriptionId
-        SubscriptionName = $subscriptionName
-        Tags = $tags
-        State = $state
-    }
-
-    # Insert entity into Azure Table Storage
-    $tableEntity | ConvertTo-Json | Set-Content -Path "subscription_entity.json"
-    az storage entity insert --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --table-name "SubscriptionData" --entity "subscription_entity.json"
-}
 
