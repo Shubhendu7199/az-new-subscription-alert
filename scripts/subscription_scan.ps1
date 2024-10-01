@@ -268,6 +268,7 @@ try {
 Write-Host "Script completed."
 
 # Function to store new subscriptions in Azure Table Storage
+# Function to store new subscriptions in Azure Table Storage
 function Add-SubscriptionToTable {
     param (
         $subscriptionId,
@@ -289,5 +290,6 @@ function Add-SubscriptionToTable {
 
     # Insert entity into Azure Table Storage
     $tableEntity | ConvertTo-Json | Set-Content -Path "subscription_entity.json"
-    az storage entity insert --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --table-name "SubscriptionData" --entity @subscription_entity.json
+    az storage entity insert --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --table-name "SubscriptionData" --entity "subscription_entity.json"
 }
+
