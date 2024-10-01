@@ -120,14 +120,11 @@
 
 # Write-Host "Script completed."
 
-
-# Set current and previous day dates
 $today = (Get-Date).ToString("yyyy-MM-dd")
 $yesterday = (Get-Date).AddDays(-1).ToString("yyyy-MM-dd")
 $fileToday = "subscriptions_$today.json"
 $fileYesterday = "subscriptions_$yesterday.json"
 
-# Fetch current subscriptions using Azure CLI
 $currentSubscriptions = az account subscription list --output json | ConvertFrom-Json
 
 if ($null -eq $currentSubscriptions) {
@@ -154,12 +151,10 @@ if (Test-Path $fileYesterday) {
         $_.subscriptionId -notin ($previousSubscriptions | ForEach-Object { $_.subscriptionId })
     }
 
-    # Ensure $newSubscriptions is treated as a collection, even if it's a single item
     if ($null -ne $newSubscriptions -and -not ($newSubscriptions -is [System.Collections.IEnumerable])) {
         $newSubscriptions = @($newSubscriptions)
     }
 
-    # If new subscriptions are found
     if ($newSubscriptions.Count -gt 0) {
         Write-Host "New subscriptions found:"
         $newSubscriptions | Format-Table
@@ -209,7 +204,6 @@ if (Test-Path $fileYesterday) {
     } else {
         Write-Host "No new subscriptions found."
 
-        # Send notification for no new subscriptions found
         $noNewSubsBody = @{
             "@type" = "MessageCard"
             "@context" = "http://schema.org/extensions"
@@ -233,17 +227,16 @@ if (Test-Path $fileYesterday) {
     Write-Host "Yesterday's subscription file not found. This is likely the first run."
 }
 
-# Save today's subscription data to a JSON file
+
 $currentSubscriptions | ConvertTo-Json | Set-Content -Path $fileToday
 
 try {
-    # Upload today's subscription file to Azure Blob Storage
+
     az storage blob upload --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --name $fileToday --file $fileToday --overwrite --output none
 } catch {
     Write-Host "Error: Failed to upload today's subscription file."
 }
 
-# Delete old subscription files older than 30 days
 try {
     $filesToDelete = az storage blob list --account-name $env:AZURE_STORAGE_ACCOUNT --account-key $env:AZURE_STORAGE_KEY --container-name $containerName --output json |
         ConvertFrom-Json | Where-Object { (Get-Date $_.properties.lastModified) -lt (Get-Date).AddDays(-30) }
